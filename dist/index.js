@@ -52,7 +52,12 @@ var ReconnectingWebsocket = function (url, protocols, options) {
     var retriesCount = 0;
     var shouldRetry = true;
     var savedOnClose = null;
+    var c_url = url;
     var listeners = {};
+    // Server failover logic
+    if (url instanceof Array) {
+        c_url = url[Math.floor(Math.random() * url.length)];
+    }
     // require new to construct
     if (!(this instanceof ReconnectingWebsocket)) {
         throw new TypeError("Failed to construct 'ReconnectingWebSocket': Please use the 'new' operator");
@@ -109,9 +114,16 @@ var ReconnectingWebsocket = function (url, protocols, options) {
         }
     };
     var connect = function () {
-        log('connect');
         var oldWs = ws;
-        ws = new config.constructor(url, protocols);
+        // Make sure we connect to a different server every time. This should prevent us from trying to connect to the same server over and over again
+        if (url instanceof Array && url.length > 1) {
+            var old_c_url = c_url;
+            do {
+                c_url = url[Math.floor(Math.random() * url.length)];
+            } while (old_c_url === c_url);
+        }
+        log('connecting to ' + c_url);
+        ws = new config.constructor(c_url, protocols);
         connectingTimeout = setTimeout(function () {
             log('timeout');
             ws.close();

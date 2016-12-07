@@ -33,7 +33,7 @@ test.cb('global WebSocket is used if available', t => {
 });
 
 test('connection status constants', t => {
-    const ws = new WebSocket(wsUrl, null, {constructor: Html5Websocket});
+    const ws = new WebSocket([wsUrl], null, {constructor: Html5Websocket});
     t.is(ws.CONNECTING, 0);
     t.is(ws.OPEN, 1);
     t.is(ws.CLOSING, 2);
@@ -42,7 +42,7 @@ test('connection status constants', t => {
 });
 
 test.cb('max retries', t => {
-    const ws = new WebSocket(wsUrl, null, {
+    const ws = new WebSocket([wsUrl], null, {
         constructor: Html5Websocket,
         maxRetries: 2,
         reconnectionDelayFactor: 0,
@@ -64,7 +64,7 @@ test.cb('max retries', t => {
 });
 
 test.cb('level0 event listeners are reassigned after reconnect', t => {
-    const ws = new WebSocket(wsUrl, null, {
+    const ws = new WebSocket([wsUrl], null, {
         constructor: Html5Websocket,
         maxRetries: 4,
         reconnectionDelayFactor: 1.2,
@@ -109,7 +109,7 @@ test.cb('level0 event listeners are reassigned after closing with fastClose', t 
         });
     });
 
-    const ws = new WebSocket(wsUrl, null, {
+    const ws = new WebSocket([wsUrl], null, {
         constructor: Html5Websocket,
         reconnectionDelayFactor: 1.2,
         maxReconnectionDelay: 20,
@@ -145,7 +145,7 @@ test.cb('level0 event listeners are reassigned after closing with fastClose', t 
 });
 
 test.cb('level2 event listeners (addEventListener, removeEventListener)', t => {
-    const ws = new WebSocket(wsUrl, null, {
+    const ws = new WebSocket([wsUrl], null, {
         constructor: Html5Websocket,
         maxRetries: 3,
         reconnectionDelayFactor: 1.2,
@@ -193,7 +193,7 @@ test.cb('connection timeout', t => {
     const proc = exec(`node unresponsive-server.js ${PORT_UNRESPONSIVE}`);
 
     proc.stdout.on('data', () => {
-        const ws = new WebSocket(`ws://localhost:${PORT_UNRESPONSIVE}`, null, {
+        const ws = new WebSocket([`ws://localhost:${PORT_UNRESPONSIVE}`], null, {
             constructor: Html5Websocket,
             connectionTimeout: 200,
             maxRetries: 0,
@@ -262,7 +262,7 @@ test.cb('connect, send, receive, close {fastClose: true}', t => {
         });
     });
 
-    const ws = new WebSocket(wsUrl, anyProtocol, {constructor: Html5Websocket});
+    const ws = new WebSocket([wsUrl], anyProtocol, {constructor: Html5Websocket});
 
     t.plan(9);
 
@@ -314,7 +314,7 @@ test.cb('close and keepClosed', t => {
         });
     });
 
-    const ws = new WebSocket(wsUrl, anyProtocol, {
+    const ws = new WebSocket([wsUrl], anyProtocol, {
         constructor: Html5Websocket,
         maxReconnectionDelay: 0,
         minReconnectionDelay: 0,
@@ -341,7 +341,7 @@ test.cb('debug mode logs stuff', t => {
     console.log = () => {
         callsCount++;
     };
-    const ws = new WebSocket(wsUrl, null, {
+    const ws = new WebSocket([wsUrl], null, {
         constructor: Html5Websocket,
         maxRetries: 0,
         debug: true,

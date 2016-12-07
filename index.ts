@@ -1,5 +1,5 @@
 type Options = {
-    constructor?: new(url: string, protocols?: string | string[]) => WebSocket;
+    constructor?: new (url: string, protocols?: string | string[]) => WebSocket;
     maxReconnectionDelay?: number;
     minReconnectionDelay?: number;
     reconnectionDelayGrowFactor?: number;
@@ -27,7 +27,7 @@ const getDefaultOptions = () => <Options>({
 const bypassProperty = (src, dst, name: string) => {
     Object.defineProperty(dst, name, {
         get: () => src[name],
-        set: (value) => {src[name] = value},
+        set: (value) => { src[name] = value },
         enumerable: true,
         configurable: true,
     });
@@ -52,13 +52,13 @@ const reassignEventListeners = (ws: WebSocket, oldWs: WebSocket, listeners) => {
         });
     });
     if (oldWs) {
-        LEVEL_0_EVENTS.forEach(name => {ws[name] = oldWs[name]});
+        LEVEL_0_EVENTS.forEach(name => { ws[name] = oldWs[name] });
     }
 };
 
-const ReconnectingWebsocket = function(
-    url: string,
-    protocols?: string|string[],
+const ReconnectingWebsocket = function (
+    url: string | string[],
+    protocols?: string | string[],
     options = <Options>{}
 ) {
     let ws: WebSocket;
@@ -67,7 +67,13 @@ const ReconnectingWebsocket = function(
     let retriesCount = 0;
     let shouldRetry = true;
     let savedOnClose = null;
+    let c_url = url;
     const listeners: any = {};
+
+    // Server failover logic
+    if (url instanceof Array) {
+        c_url = url[Math.floor(Math.random() * url.length)];
+    }
 
     // require new to construct
     if (!(this instanceof ReconnectingWebsocket)) {
@@ -84,7 +90,7 @@ const ReconnectingWebsocket = function(
         throw new TypeError('Invalid WebSocket constructor. Set `options.constructor`');
     }
 
-    const log = config.debug ? (...params) => console.log('RWS:', ...params) : () => {};
+    const log = config.debug ? (...params) => console.log('RWS:', ...params) : () => { };
 
     /**
      * Not using dispatchEvent, otherwise we must use a DOM Event object
@@ -122,9 +128,18 @@ const ReconnectingWebsocket = function(
     };
 
     const connect = () => {
-        log('connect');
         const oldWs = ws;
-        ws = new (<any>config.constructor)(url, protocols);
+
+        // Make sure we connect to a different server every time. This should prevent us from trying to connect to the same server over and over again
+        if (url instanceof Array && url.length > 1) {
+            let old_c_url = c_url;
+            do {
+                c_url = url[Math.floor(Math.random() * url.length)];
+            } while (old_c_url === c_url);
+        }
+
+        log('connecting to ' + c_url);
+        ws = new (<any>config.constructor)(c_url, protocols);
 
         connectingTimeout = setTimeout(() => {
             log('timeout');
